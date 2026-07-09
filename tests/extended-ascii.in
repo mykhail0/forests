@@ -1,0 +1,8 @@
+ADD kępa dąb żółć
+PRINT
+ADD �
+PRINT kępa
+PRINT kępa dąb
+CHECK �
+CHECK * * żółć
+CHECK * dab

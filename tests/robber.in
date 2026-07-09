@@ -1,0 +1,55 @@
+DEL
+ADD ADD CHECK PRINT
+CHECK CHECK CHECK
+PRINT ADD CHECK
+DEL DEL
+DEL
+PRINT
+DEL xyz
+DEL xyz XYZ
+ADD f5
+ADD f2
+ADD f8
+ADD f3
+ADD f7
+DEL f2
+DEL f8
+PRINT
+ADD f1
+ADD f2
+ADD f6
+ADD f8
+DEL f5
+PRINT
+ADD f2 t1
+ADD f2 t2
+ADD f2 t3
+ADD f2 t4
+ADD f2 t5
+ADD f8 t5
+ADD f8 t4
+ADD f8 t3
+ADD f8 t2
+ADD f8 t1
+DEL f2 t3
+DEL f8 t3
+CHECK * t3
+ADD f2 t2 a5
+ADD f2 t2 a2
+ADD f2 t2 a3
+ADD f2 t2 a1
+ADD f2 t2 a8
+ADD f2 t2 a7
+ADD f2 t2 a9
+DEL f2 t2 a2
+DEL f2 t2 a8
+PRINT f2 t2
+DEL f2
+CHECK f2 * a1
+CHECK f2 * a9
+ADD f2 t1 a1
+ADD f2 t1 a2
+ADD f2 t1 a3
+DEL f2 t1 a2
+DEL f2 t1 a1
+CHECK * * a3

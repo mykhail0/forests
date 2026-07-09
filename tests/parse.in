@@ -1,0 +1,11 @@
+CHECK a *
+CHECK a b *
+CHECK a * *
+CHECK a b c *
+CHECK a b c d
+CHECK * *
+CHECK * * *
+Add a
+Del a
+CZECK a
+print a

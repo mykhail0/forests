@@ -1,0 +1,4 @@
+.in12 means 2 interpretations possible: .out with either .err1 or .err2 or
+either pair of .out1, .err1 or .out2, .err2
+
+Time limit for tests with 100 in the name is 3 seconds, for others 2 seconds.

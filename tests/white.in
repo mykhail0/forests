@@ -1,0 +1,29 @@
+
+
+ADD	abc
+ADDd
+ 
+ # To jest błędny wiersz.
+ ADD  1a  2a  3a
+	
+	# To też jest błędny wiersz.
+	ADD	1a	2a	3b	
+#
+	 ADD	 1a	 2b	 3c	 
+	 
+	 # Kolejny błędny wiersz
+ PRINT 
+  PRINT  1a 
+	PRINT	1a	2a	
+
+
+	 PRINT	 1a	 2b	 
+ DEL  1a  2a  3a 
+	DEL	1a	2a	3b	
+	 DEL	 1a	 2b	 3c	 
+ CHECK  1a 
+	CHECK	1a	2a	
+	 CHECK	 1a	 2a	 3a	 
+
+
+

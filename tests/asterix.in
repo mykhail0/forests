@@ -1,0 +1,26 @@
+ADD *
+ADD x
+ADD * *
+ADD * y
+ADD * * *
+ADD * * z
+PRINT
+PRINT *
+PRINT * *
+CHECK *
+CHECK x
+CHECK * *
+CHECK * y
+CHECK * * *
+CHECK * * z
+DEL * * *
+PRINT * *
+CHECK * * z
+DEL * *
+CHECK * * z
+PRINT *
+CHECK * y
+DEL *
+CHECK * y
+PRINT
+CHECK x
