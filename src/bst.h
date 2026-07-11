@@ -1,3 +1,6 @@
+#ifndef BST_H
+#define BST_H
+
 #include <stdlib.h>
 
 // User of this library must initiate pseudorandom numbers with:
@@ -36,3 +39,5 @@ Tree** find_path_pointer(Tree**, char const* const*, size_t, size_t);
 void push_tree(Tree**, char const* const*, size_t, size_t);
 
 void delete_value_from_tree(Tree**, char const*);
+
+#endif  // BST_H

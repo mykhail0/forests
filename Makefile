@@ -7,17 +7,26 @@ SRCDIR = src
 BUILDDIR = build
 TESTSDIR = tests
 TEST_EXECUTABLE = $(BUILDDIR)/forests
+AUXOBJS = $(BUILDDIR)/input.o $(BUILDDIR)/commands.o $(BUILDDIR)/bst.o
 
 all: forests
 
 $(TEST_EXECUTABLE): CFLAGS += -pedantic -Werror -fstack-protector-strong -g
-$(TEST_EXECUTABLE): $(SRCDIR)/forests.c $(BUILDDIR)/bst.o
+$(TEST_EXECUTABLE): $(SRCDIR)/forests.c $(AUXOBJS)
 	$(CC) $(CFLAGS) -c $< -o $(BUILDDIR)/forest.o
-	$(CC) -o $@ $(BUILDDIR)/forest.o $(BUILDDIR)/bst.o
+	$(CC) -o $@ $(BUILDDIR)/forest.o $(AUXOBJS)
 
-forests: $(SRCDIR)/forests.c $(BUILDDIR)/bst.o
+forests: $(SRCDIR)/forests.c $(AUXOBJS)
 	$(CC) $(CFLAGS) -c $< -o $(BUILDDIR)/forest.o
-	$(CC) -o $@ $(BUILDDIR)/forest.o $(BUILDDIR)/bst.o
+	$(CC) -o $@ $(BUILDDIR)/forest.o $(AUXOBJS)
+
+$(BUILDDIR)/input.o: $(SRCDIR)/input.c $(SRCDIR)/input.h
+	mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILDDIR)/commands.o: $(SRCDIR)/commands.c $(SRCDIR)/commands.h
+	mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILDDIR)/bst.o: $(SRCDIR)/bst.c $(SRCDIR)/bst.h
 	mkdir -p $(BUILDDIR)
