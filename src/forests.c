@@ -1,10 +1,10 @@
 #define _GNU_SOURCE
-#include <assert.h>
+#include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "bst.h"
 
@@ -55,10 +55,10 @@ void handle_DEL(Tree** forests, char const* const* command,
   if (command_size == 1) {
     delete_tree(forests);
   } else {
-    Tree** entity_to_be_deleted =
+    Tree** tree_to_delete =
         find_path_pointer(forests, command, command_size, 1);
-    if (entity_to_be_deleted)
-      delete_value_from_tree(entity_to_be_deleted, command[command_size - 1]);
+    if (tree_to_delete)
+      delete_value_from_tree(tree_to_delete, command[command_size - 1]);
   }
   puts("OK");
 }
@@ -89,7 +89,6 @@ void handle_CHECK(Tree* forests, char const* const* command,
 
 void handle_command(Tree** forests, char const* const* const command,
                     size_t command_size) {
-  assert(*command != NULL);
   if (command_size == 0) {
     return;
   }
@@ -123,14 +122,11 @@ void process_line(Tree** forests, char* line) {
 void process_commands(Tree** forests) {
   char* line = NULL;
   size_t line_size = 0;
-  int errsv;
-
-  while (0 < (errsv = getline(&line, &line_size, stdin)))
-    process_line(forests, line);
-
+  while (getline(&line, &line_size, stdin) > 0) process_line(forests, line);
+  int errsv = errno;
   free(line);
 
-  if (!feof(stdin) && ferror(stdin)) {
+  if (ferror(stdin) || errsv == EINVAL || errsv == ENOMEM) {
     delete_tree(forests);
     perror("getline()");
     exit(EXIT_FAILURE);
@@ -138,6 +134,7 @@ void process_commands(Tree** forests) {
 }
 
 int main() {
+  srand((unsigned)time(NULL));
   Tree* forests;
   init_tree(&forests);
   process_commands(&forests);

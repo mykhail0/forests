@@ -1,5 +1,9 @@
 #include <stdlib.h>
 
+// User of this library must initiate pseudorandom numbers with:
+// srand((unsigned)time(NULL));
+// for proper balancing of BST.
+
 typedef struct tree Tree;
 
 struct tree {
