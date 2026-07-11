@@ -8,37 +8,25 @@
 
 #include "bst.h"
 
-void free_arr(char** arr, int arr_size) {
-  for (int i = 0; i < arr_size; ++i) free(arr[i]);
-  free(arr);
-}
-
 /**
- * Splits a string `str` into words on white spaces and writes them into an
- * array. If there are more words than possible in a valid command then returns
- * 1, else returns 0.
+ * Find starts of each word in command `str` and write them into an array. If
+ * the characters in this or number of words are not valid, returns 1, else
+ * returns 0.
  */
-static int split(char* str, char*** arr, int* arr_size) {
+static int split_command(char* str, char* arr[], size_t* arr_size) {
   static const char whitespace[7] = {' ', '\t', '\n', '\v', '\f', '\r', '\0'};
-  // Maximum length of the command.
-  *arr_size = 4;
-  *arr = malloc((*arr_size) * sizeof **arr);
-  if (*arr == NULL) {
-    free(str);
-    exit(EXIT_FAILURE);
-  }
+  bool ended_with_newline = str[strlen(str) - 1] == '\n';
+  for (size_t i = 0; i < *arr_size; ++i) arr[i] = NULL;
 
-  int i = 0;
+  size_t i = 0;
   char* word = strtok(str, whitespace);
 
   while (word != NULL && i < *arr_size) {
-    (*arr)[i] = malloc((strlen(word) + 1) * sizeof *((*arr)[i]));
-    if ((*arr)[i] == NULL) {
-      free_arr(*arr, i);
-      free(str);
-      exit(EXIT_FAILURE);
+    size_t len = strlen(word);
+    for (size_t j = 0; j < len; ++j) {
+      if ((unsigned char)word[j] < 33) return EXIT_FAILURE;
     }
-    strcpy((*arr)[i], word);
+    arr[i] = word;
 
     word = strtok(NULL, whitespace);
     ++i;
@@ -46,10 +34,13 @@ static int split(char* str, char*** arr, int* arr_size) {
 
   *arr_size = i;
 
-  return word == NULL ? EXIT_SUCCESS : EXIT_FAILURE;
+  return word != NULL                             ? EXIT_FAILURE
+         : (*arr_size == 0 || ended_with_newline) ? EXIT_SUCCESS
+                                                  : EXIT_FAILURE;
 }
 
-void handle_ADD(Tree** forests, char** command, int command_size) {
+void handle_ADD(Tree** forests, char const* const* command,
+                size_t command_size) {
   if (command_size == 1) {
     fprintf(stderr, "ERROR\n");
     return;
@@ -59,7 +50,8 @@ void handle_ADD(Tree** forests, char** command, int command_size) {
   puts("OK");
 }
 
-void handle_DEL(Tree** forests, char** command, int command_size) {
+void handle_DEL(Tree** forests, char const* const* command,
+                size_t command_size) {
   if (command_size == 1) {
     delete_tree(forests);
   } else {
@@ -71,33 +63,32 @@ void handle_DEL(Tree** forests, char** command, int command_size) {
   puts("OK");
 }
 
-void handle_PRINT(Tree* forests, char** arr, int command_size) {
+void handle_PRINT(Tree** forests, char const* const* command,
+                  size_t command_size) {
   if (command_size == 4) {
     fprintf(stderr, "ERROR\n");
     return;
   }
 
   if (command_size == 1) {
-    print_infix(forests);
+    print_infix(*forests);
   } else {
-    Tree* entity_to_be_printed = find_path(forests, arr, command_size, 1);
-    if (entity_to_be_printed) print_infix(entity_to_be_printed->nested);
+    Tree const* tree_to_print = find_path(forests, command, command_size, 1);
+    if (tree_to_print) print_infix(tree_to_print->nested);
   }
 }
 
-// TODO
-// NIE OBSLUGUJE POSZUKIWANIA Z METAZNAKIEM
-void handle_CHECK(Tree* forests, char** command, int command_size) {
-  if (command_size == 1) {
+void handle_CHECK(Tree* forests, char const* const* command,
+                  size_t command_size) {
+  if (command_size == 1 || strcmp(command[command_size - 1], "*") == 0)
     fprintf(stderr, "ERROR\n");
-    return;
-  }
-
-  puts(find_path_with_wildcard(forests, command, command_size, 1) ? "YES"
-                                                                  : "NO");
+  else
+    puts(find_path_with_wildcard(forests, command, command_size, 1) ? "YES"
+                                                                    : "NO");
 }
 
-void handle_command(Tree** forests, char** command, int command_size) {
+void handle_command(Tree** forests, char const* const* const command,
+                    size_t command_size) {
   assert(*command != NULL);
   if (command_size == 0) {
     return;
@@ -107,7 +98,7 @@ void handle_command(Tree** forests, char** command, int command_size) {
   } else if (strcmp(command[0], "DEL") == 0) {
     handle_DEL(forests, command, command_size);
   } else if (strcmp(command[0], "PRINT") == 0) {
-    handle_PRINT(*forests, command, command_size);
+    handle_PRINT(forests, command, command_size);
   } else if (strcmp(command[0], "CHECK") == 0) {
     handle_CHECK(*forests, command, command_size);
   } else {
@@ -118,15 +109,14 @@ void handle_command(Tree** forests, char** command, int command_size) {
 // Assumes `*str` is not empty as a result of `getline()` call.
 void process_line(Tree** forests, char* line) {
   if (line[0] != '#') {
-    char** command;
-    int command_size;
+    // Maximum length of the command.
+    size_t command_size = 4;
+    char* command[4];
 
-    if (split(line, &command, &command_size) == EXIT_SUCCESS)
-      handle_command(forests, command, command_size);
+    if (split_command(line, command, &command_size) == EXIT_SUCCESS)
+      handle_command(forests, (char const* const*)command, command_size);
     else
       fprintf(stderr, "ERROR\n");
-
-    free_arr(command, command_size);
   }
 }
 

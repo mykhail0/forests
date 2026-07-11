@@ -1,9 +1,12 @@
 #include "bst.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+// TODO graceful frees when exit
 
 // Return pseudorandom integer in range [0..n)
 static int randof(int n) { return rand() / (RAND_MAX + 1.0) * n; }
@@ -25,7 +28,7 @@ void delete_tree(Tree** t) {
   }
 }
 
-void print_infix(Tree* t) {
+void print_infix(Tree const* t) {
   if (t) {
     print_infix(t->left);
     puts(t->value);
@@ -33,27 +36,30 @@ void print_infix(Tree* t) {
   }
 }
 
-Tree* find_path(Tree* t, char** arr, int arr_size, int i) {
-  Tree* ans = NULL;
-  if (t && (i < arr_size)) {
-    int comp_res = strcmp(arr[i], t->value);
-    if (comp_res < 0) {
-      ans = find_path(t->left, arr, arr_size, i);
-    } else if (comp_res == 0) {
-      if (i == arr_size - 1)
-        ans = t;
-      else
-        ans = find_path(t->nested, arr, arr_size, i + 1);
-    } else {
-      ans = find_path(t->right, arr, arr_size, i);
-    }
+Tree const* find_path(Tree** t, char const* const* arr, size_t arr_size,
+                      size_t i) {
+  return *find_path_pointer(t, arr, arr_size, i);
+}
+
+Tree** find_path_pointer(Tree** t, char const* const* arr, size_t arr_size,
+                         size_t i) {
+  Tree** ans = NULL;
+  if ((*t) && (i < arr_size)) {
+    int comp_res = strcmp(arr[i], (*t)->value);
+    ans = comp_res != 0
+              ? find_path_pointer(comp_res < 0 ? &(*t)->left : &(*t)->right,
+                                  arr, arr_size, i)
+          : i == arr_size - 1
+              ? t
+              : find_path_pointer(&(*t)->nested, arr, arr_size, i + 1);
   }
   return ans;
 }
 
-Tree* find_path_with_wildcard(Tree* t, char** arr, int arr_size, int i) {
-  Tree* ans = NULL;
-  if (t && (i < arr_size)) {
+Tree const* find_path_with_wildcard(Tree* t, char const* const* arr,
+                                    size_t arr_size, size_t i) {
+  Tree const* ans = NULL;
+  if (t && i < arr_size) {
     if (strcmp(arr[i], "*") == 0) {
       ans = find_path_with_wildcard(t->nested, arr, arr_size, i + 1);
       if (!ans) {
@@ -62,56 +68,32 @@ Tree* find_path_with_wildcard(Tree* t, char** arr, int arr_size, int i) {
       }
     } else {
       int comp_res = strcmp(arr[i], t->value);
-      if (comp_res < 0) {
-        ans = find_path_with_wildcard(t->left, arr, arr_size, i);
-      } else if (comp_res == 0) {
-        if (i == arr_size - 1)
-          ans = t;
-        else
-          ans = find_path_with_wildcard(t->nested, arr, arr_size, i + 1);
-      } else {
-        ans = find_path_with_wildcard(t->right, arr, arr_size, i);
-      }
+      ans = comp_res != 0
+                ? find_path_with_wildcard(comp_res < 0 ? t->left : t->right,
+                                          arr, arr_size, i)
+            : i == arr_size - 1
+                ? t
+                : find_path_with_wildcard(t->nested, arr, arr_size, i + 1);
     }
   }
   return ans;
 }
 
-Tree** find_path_pointer(Tree** t, char** arr, int arr_size, int i) {
-  Tree** ans = NULL;
-  if ((*t) && (i < arr_size)) {
-    int comp_res = strcmp(arr[i], (*t)->value);
-    if (comp_res < 0) {
-      ans = find_path_pointer(&(*t)->left, arr, arr_size, i);
-    } else if (comp_res == 0) {
-      if (i == arr_size - 1)
-        ans = t;
-      else
-        ans = find_path_pointer(&(*t)->nested, arr, arr_size, i + 1);
-    } else {
-      ans = find_path_pointer(&(*t)->right, arr, arr_size, i);
-    }
-  }
-  return ans;
-}
-
-void push_tree(Tree** t, char** arr, int arr_size, int i) {
+void push_tree(Tree** t, char const* const* arr, size_t arr_size, size_t i) {
   if (i >= arr_size) return;
 
   if (*t) {
     int comp_res = strcmp(arr[i], (*t)->value);
-    if (comp_res < 0) {
-      push_tree(&(*t)->left, arr, arr_size, i);
-    } else if (comp_res == 0) {
-      push_tree(&(*t)->nested, arr, arr_size, i + 1);
+    if (comp_res != 0) {
+      push_tree(comp_res < 0 ? &(*t)->left : &(*t)->right, arr, arr_size, i);
     } else {
-      push_tree(&(*t)->right, arr, arr_size, i);
+      push_tree(&(*t)->nested, arr, arr_size, i + 1);
     }
   } else {
     *t = malloc(sizeof **t);
     if (*t == NULL) exit(EXIT_FAILURE);
 
-    (*t)->value = malloc(strlen(arr[i]) + 1);  // `+ 1` dla '\0'.
+    (*t)->value = malloc((strlen(arr[i]) + 1) * sizeof(*t)->value);
     if ((*t)->value == NULL) exit(EXIT_FAILURE);
     strcpy((*t)->value, arr[i]);
 
@@ -123,10 +105,9 @@ void push_tree(Tree** t, char** arr, int arr_size, int i) {
   }
 }
 
-// NIE DOSTAJA PUSTEGO DRZEWA
-// Zamienia korzen drzewa `t` na maksymalny lisc lewego poddrzewa, usuwajac ten
-// lisc.
-void change_root_to_max_and_delete_max(Tree** t) {
+// Makes max leaf of left tree the new root.
+static void delete_root_max(Tree** t) {
+  assert(*t != NULL);
   Tree* temp = *t;
 
   if ((*t)->left) {
@@ -137,8 +118,10 @@ void change_root_to_max_and_delete_max(Tree** t) {
       maximum = maximum->right;
     }
 
-    parent->right = maximum->left;
-    maximum->left = (*t)->left;
+    if (parent != *t) {
+      parent->right = maximum->left;
+      maximum->left = (*t)->left;
+    }
     maximum->right = (*t)->right;
 
     *t = maximum;
@@ -151,9 +134,9 @@ void change_root_to_max_and_delete_max(Tree** t) {
   free(temp);
 }
 
-// Zamienia korzen drzewa `t` na minimalny lisc prawego poddrzewa, usuwajac ten
-// lisc.
-void change_root_to_min_and_delete_min(Tree** t) {
+// Makes min leaf of right tree the new root.
+static void delete_root_min(Tree** t) {
+  assert(*t != NULL);
   Tree* temp = *t;
 
   if ((*t)->right) {
@@ -164,8 +147,10 @@ void change_root_to_min_and_delete_min(Tree** t) {
       minimum = minimum->left;
     }
 
-    parent->left = minimum->right;
-    minimum->left = (*t)->left;
+    if (parent != *t) {
+      parent->left = minimum->right;
+      minimum->left = (*t)->left;
+    }
     minimum->right = (*t)->right;
 
     *t = minimum;
@@ -178,18 +163,16 @@ void change_root_to_min_and_delete_min(Tree** t) {
   free(temp);
 }
 
-void delete_value_from_tree(Tree** t, char* x) {
+void delete_value_from_tree(Tree** t, char const* x) {
   if (*t) {
     int comp_res = strcmp(x, (*t)->value);
-    if (comp_res < 0) {
-      delete_value_from_tree(&(*t)->left, x);
-    } else if (comp_res == 0) {
-      if (randof(2))
-        change_root_to_max_and_delete_max(t);
-      else
-        change_root_to_min_and_delete_min(t);
+    if (comp_res != 0) {
+      delete_value_from_tree(comp_res < 0 ? &(*t)->left : &(*t)->right, x);
     } else {
-      delete_value_from_tree(&(*t)->right, x);
+      if (randof(2))
+        delete_root_max(t);
+      else
+        delete_root_min(t);
     }
   }
 }

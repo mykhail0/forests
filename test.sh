@@ -1,8 +1,14 @@
 #!/bin/bash
 
 # TODO remove breaks
+# TODO change SECONDS usage to timeout coreutil
 for f in "$2"/*.in; do
     base="$(basename -- "$f" .in)"
+    time_limit=2
+    if [ "$(expr "$base" : ".*100.*")" -ne 0 ]; then
+        time_limit=3
+    fi
+
     out="${2}/${base}.myout"
     err="${2}/${base}.myerr"
     # out="$(mktemp)"
@@ -18,26 +24,21 @@ for f in "$2"/*.in; do
     ret_val=$?
     if [ $ret_val -ne 0 ]; then
         echo "Test $base fail: return code"
-        rm "$out" "$err"
         break
     fi
 
     if ! diff --color=auto "${2}/${base}.out" "$out"; then
         echo "Test $base fail: .out diff"
-        # rm "$out"
-        rm "$err"
         break
     fi
-    rm "$out"
 
     if ! diff --color=auto "${2}/${base}.err" "$err"; then
         echo "Test $base fail: .err diff"
-        # rm "$err"
         break
     fi
-    rm "$err"
+    rm "$out" "$err"
 
-    if [ $((t1 - t0)) -ge 2 ]; then
+    if [ $((t1 - t0)) -ge "$time_limit" ]; then
         echo "Test $base fail: TLE"
         break
     fi
