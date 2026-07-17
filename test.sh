@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "$#" -ne 2 ]; then
+    echo "Run like: $0 prog dir"
+    exit
+fi
+
 prog="$1"
 if [ "$(basename -- "$1")" = "$1" ]; then
     prog="./"$1
