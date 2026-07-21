@@ -7,6 +7,10 @@ forest. On each tree many animals can live. Each forest has a unique name. Every
 tree in a forest has a unique name. Every animal living on a tree has a unique
 name. This is a program that reproduces this world.
 
+## Demo
+
+![demo](assets/demo.gif)
+
 ## Detailed description of functionality
 
 After the launch of the program, there are no forests, trees nor animals. The
