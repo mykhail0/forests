@@ -1,6 +1,7 @@
 #ifndef BST_H
 #define BST_H
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 // User of this library must initiate pseudorandom numbers with:
@@ -34,9 +35,10 @@ Tree** find_path_pointer(Tree**, char const* const*, size_t, size_t);
 
 /**
  * Inserts a given sequence of the given length of strings into the given tree
- * recursively, each next word nesting deeper into the tree.
+ * recursively, each next word nesting deeper into the tree. Return `false` iff
+ * memory allocation failed.
  */
-void push_tree(Tree**, char const* const*, size_t, size_t);
+bool push_tree(Tree**, char const* const*, size_t, size_t);
 
 void delete_value_from_tree(Tree**, char const*);
 

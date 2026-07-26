@@ -3,6 +3,6 @@
 
 #include "bst.h"
 
-void process_commands(Tree**);
+bool process_commands(Tree**);
 
 #endif  // INPUT_H

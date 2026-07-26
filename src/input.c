@@ -13,7 +13,7 @@
  * returns 0.
  */
 static int split_command(char* str, char* arr[], size_t* arr_size) {
-  static const char whitespace[7] = {' ', '\t', '\n', '\v', '\f', '\r', '\0'};
+  static const char whitespace[] = " \t\n\v\f\r";
   bool ended_with_newline = str[strlen(str) - 1] == '\n';
   for (size_t i = 0; i < *arr_size; ++i) arr[i] = NULL;
 
@@ -39,29 +39,30 @@ static int split_command(char* str, char* arr[], size_t* arr_size) {
 }
 
 // Assumes `*str` is not empty as a result of `getline()` call.
-static void process_line(Tree** forests, char* line) {
+// Return `false` iff memory allocation failed.
+static bool process_line(Tree** forests, char* line) {
   if (line[0] != '#') {
     // Maximum length of the command.
     size_t command_size = 4;
     char* command[4];
 
     if (split_command(line, command, &command_size) == EXIT_SUCCESS)
-      handle_command(forests, (char const* const*)command, command_size);
+      return handle_command(forests, (char const* const*)command, command_size);
     else
-      fprintf(stderr, "ERROR\n");
+      printERR();
   }
+  return true;
 }
 
-void process_commands(Tree** forests) {
+bool process_commands(Tree** forests) {
   char* line = NULL;
   size_t line_size = 0;
-  while (getline(&line, &line_size, stdin) > 0) process_line(forests, line);
+  bool success = true;
+  while (success && getline(&line, &line_size, stdin) > 0) {
+    success = process_line(forests, line);
+  }
   int errsv = errno;
   free(line);
 
-  if (ferror(stdin) || errsv == EINVAL || errsv == ENOMEM) {
-    delete_tree(forests);
-    perror("getline()");
-    exit(EXIT_FAILURE);
-  }
+  return success && !ferror(stdin) && errsv == 0;
 }

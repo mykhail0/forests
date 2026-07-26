@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// TODO graceful frees when exit
-
 // Return pseudorandom integer in range [0..n)
 static int randof(int n) { return rand() / (RAND_MAX + 1.0) * n; }
 
@@ -76,29 +74,30 @@ Tree const* find_path_with_wildcard(Tree* t, char const* const* arr,
   return ans;
 }
 
-void push_tree(Tree** tp, char const* const* arr, size_t arr_size, size_t i) {
-  if (i >= arr_size) return;
+bool push_tree(Tree** tp, char const* const* arr, size_t arr_size, size_t i) {
+  if (i >= arr_size) return true;
 
   if (*tp) {
     int comp_res = strcmp(arr[i], (*tp)->value);
     if (comp_res != 0) {
-      push_tree(comp_res < 0 ? &(*tp)->left : &(*tp)->right, arr, arr_size, i);
+      return push_tree(comp_res < 0 ? &(*tp)->left : &(*tp)->right, arr,
+                       arr_size, i);
     } else {
-      push_tree(&(*tp)->nested, arr, arr_size, i + 1);
+      return push_tree(&(*tp)->nested, arr, arr_size, i + 1);
     }
   } else {
     *tp = malloc(sizeof **tp);
-    if (*tp == NULL) exit(EXIT_FAILURE);
-
-    (*tp)->value = malloc((strlen(arr[i]) + 1) * sizeof(*tp)->value);
-    if ((*tp)->value == NULL) exit(EXIT_FAILURE);
-    strcpy((*tp)->value, arr[i]);
+    if (*tp == NULL) return false;
 
     init_tree(&(*tp)->left);
     init_tree(&(*tp)->right);
     init_tree(&(*tp)->nested);
 
-    push_tree(&(*tp)->nested, arr, arr_size, i + 1);
+    (*tp)->value = calloc(strlen(arr[i]) + 1, sizeof(*tp)->value);
+    // if ((*tp)->value == NULL) return false;
+    strcpy((*tp)->value, arr[i]);
+
+    return push_tree(&(*tp)->nested, arr, arr_size, i + 1);
   }
 }
 

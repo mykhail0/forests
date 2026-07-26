@@ -3,15 +3,22 @@
 
 #include "bst.h"
 
-static void handle_ADD(Tree** forests, char const* const* command,
+void printERR() { fprintf(stderr, "ERROR\n"); }
+
+// Return `false` when memory allocation failed.
+static bool handle_ADD(Tree** forests, char const* const* command,
                        size_t command_size) {
   if (command_size == 1) {
-    fprintf(stderr, "ERROR\n");
-    return;
+    printERR();
+    return true;
   }
 
-  push_tree(forests, command, command_size, 1);
+  if (!push_tree(forests, command, command_size, 1)) {
+    printERR();
+    return false;
+  }
   puts("OK");
+  return true;
 }
 
 static void handle_DEL(Tree** forests, char const* const* command,
@@ -30,7 +37,7 @@ static void handle_DEL(Tree** forests, char const* const* command,
 static void handle_PRINT(Tree** forests, char const* const* command,
                          size_t command_size) {
   if (command_size == 4) {
-    fprintf(stderr, "ERROR\n");
+    printERR();
     return;
   }
 
@@ -45,26 +52,26 @@ static void handle_PRINT(Tree** forests, char const* const* command,
 static void handle_CHECK(Tree* forests, char const* const* command,
                          size_t command_size) {
   if (command_size == 1 || strcmp(command[command_size - 1], "*") == 0)
-    fprintf(stderr, "ERROR\n");
+    printERR();
   else
     puts(find_path_with_wildcard(forests, command, command_size, 1) ? "YES"
                                                                     : "NO");
 }
 
-void handle_command(Tree** forests, char const* const* const command,
+bool handle_command(Tree** forests, char const* const* const command,
                     size_t command_size) {
-  if (command_size == 0) {
-    return;
+  if (command_size > 0) {
+    if (strcmp(command[0], "ADD") == 0) {
+      return handle_ADD(forests, command, command_size);
+    } else if (strcmp(command[0], "DEL") == 0) {
+      handle_DEL(forests, command, command_size);
+    } else if (strcmp(command[0], "PRINT") == 0) {
+      handle_PRINT(forests, command, command_size);
+    } else if (strcmp(command[0], "CHECK") == 0) {
+      handle_CHECK(*forests, command, command_size);
+    } else {
+      printERR();
+    }
   }
-  if (strcmp(command[0], "ADD") == 0) {
-    handle_ADD(forests, command, command_size);
-  } else if (strcmp(command[0], "DEL") == 0) {
-    handle_DEL(forests, command, command_size);
-  } else if (strcmp(command[0], "PRINT") == 0) {
-    handle_PRINT(forests, command, command_size);
-  } else if (strcmp(command[0], "CHECK") == 0) {
-    handle_CHECK(*forests, command, command_size);
-  } else {
-    fprintf(stderr, "ERROR\n");
-  }
+  return true;
 }
