@@ -6,7 +6,7 @@
 
 // User of this library must initiate pseudorandom numbers with:
 // srand((unsigned)time(NULL));
-// for proper balancing of BST.
+// for BST to be a bit more balanced.
 
 typedef struct tree Tree;
 

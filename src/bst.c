@@ -79,11 +79,11 @@ bool push_tree(Tree** tp, char const* const* arr, size_t arr_size, size_t i) {
 
   if (*tp) {
     int comp_res = strcmp(arr[i], (*tp)->value);
-    if (comp_res != 0) {
+    if (comp_res == 0) {
+      return push_tree(&(*tp)->nested, arr, arr_size, i + 1);
+    } else {
       return push_tree(comp_res < 0 ? &(*tp)->left : &(*tp)->right, arr,
                        arr_size, i);
-    } else {
-      return push_tree(&(*tp)->nested, arr, arr_size, i + 1);
     }
   } else {
     *tp = malloc(sizeof **tp);
@@ -94,7 +94,7 @@ bool push_tree(Tree** tp, char const* const* arr, size_t arr_size, size_t i) {
     init_tree(&(*tp)->nested);
 
     (*tp)->value = calloc(strlen(arr[i]) + 1, sizeof(*tp)->value);
-    // if ((*tp)->value == NULL) return false;
+    if ((*tp)->value == NULL) return false;
     strcpy((*tp)->value, arr[i]);
 
     return push_tree(&(*tp)->nested, arr, arr_size, i + 1);
@@ -152,12 +152,10 @@ static void delete_root_min(Tree** tp) {
 void delete_value_from_tree(Tree** tp, char const* x) {
   if (*tp) {
     int comp_res = strcmp(x, (*tp)->value);
-    if (comp_res != 0) {
-      delete_value_from_tree(comp_res < 0 ? &(*tp)->left : &(*tp)->right, x);
-    } else {
+    if (comp_res == 0) {
       // If there exists only one child then make it root. Otherwise, at random
-      // make the root either max from left child or min from right child, this
-      // makes BST balanced on average.
+      // make the root either max from left child or min from right child.
+      // This makes the height of the tree on average smaller.
       if ((*tp)->left == NULL || (*tp)->right == NULL) {
         delete_tree(&(*tp)->nested);
         free((*tp)->value);
@@ -169,6 +167,8 @@ void delete_value_from_tree(Tree** tp, char const* x) {
       } else {
         delete_root_min(tp);
       }
+    } else {
+      delete_value_from_tree(comp_res < 0 ? &(*tp)->left : &(*tp)->right, x);
     }
   }
 }
