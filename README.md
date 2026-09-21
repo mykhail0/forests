@@ -7,6 +7,10 @@ forest. On each tree many animals can live. Each forest has a unique name. Every
 tree in a forest has a unique name. Every animal living on a tree has a unique
 name. This is a program that reproduces this world.
 
+This was an assignment from the course on individual programming projects at the
+University of Warsaw. Specification, requirements and tests were provided as
+part of the assignment.
+
 ## Demo
 
 ![demo](assets/demo.gif)
